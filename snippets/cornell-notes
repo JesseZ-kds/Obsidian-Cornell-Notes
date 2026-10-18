@@ -1,0 +1,193 @@
+/* ==========================================================================
+   Cornell Notes — Obsidian CSS snippet (extends lined-paper.css)
+   --------------------------------------------------------------------------
+   Install: copy to <vault>/.obsidian/snippets/cornell-notes.css and enable it
+            (Settings → Appearance → CSS snippets). Keep lined-paper.css on too.
+   Use:     cssclasses: [lined-paper, cornell]   (both classes are required)
+
+   Write plain callouts, with a blank line between each:
+     > [!cue]              a cue (question or keyword)
+     > [!notes]            the notes for that cue
+     > [!summary] Summary  the summary, last in the note
+
+   While editing you see lined paper. In READING VIEW the page becomes a
+   Cornell layout: cue column | divider | notes column, with the summary
+   pinned along the bottom.
+   ========================================================================== */
+
+
+/* ==========================================================================
+   1. Settings
+   ========================================================================== */
+
+.lined-paper.cornell {
+  --cue: 0.3;                   /* cue column width, as a share of the page */
+  --gap: 16px;                  /* space either side of the divider */
+  --row-min: 2;                 /* rows reserved per cue, so a cue can wrap */
+  --summary-lines: 5;           /* summary box height in ruled lines, label included */
+  --cue-ink: #2b5aa8;           /* cues in blue pen; set to var(--ink) for one pen */
+  --divider: var(--margin);     /* divider and summary rule colour */
+  --label-cue: "Cues";          /* column labels in the title bar */
+  --label-notes: "Notes";
+
+  /* x position of the divider; shared by the page and the title bar */
+  --divider-x: calc(var(--pad-x) + (100% - var(--pad-x) * 2) * var(--cue));
+  --divider-line: linear-gradient(to right,
+    transparent var(--divider-x),
+    var(--divider) var(--divider-x),
+    var(--divider) calc(var(--divider-x) + 2px),
+    transparent calc(var(--divider-x) + 2px));
+}
+
+.theme-dark .lined-paper.cornell { --cue-ink: #8fb4ff; }
+
+
+/* ==========================================================================
+   2. All modes — the three Cornell callouts look like writing, not boxes
+   (every other callout type keeps Obsidian's design)
+   ========================================================================== */
+
+.lined-paper.cornell .callout[data-callout="cue"],
+.lined-paper.cornell .callout[data-callout="notes"],
+.lined-paper.cornell .callout[data-callout="summary"] {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: none !important;
+  border-radius: 0;
+  box-shadow: none !important;
+}
+.lined-paper.cornell .callout[data-callout="cue"]::before,
+.lined-paper.cornell .callout[data-callout="notes"]::before,
+.lined-paper.cornell .callout[data-callout="summary"]::before { content: none; }
+
+/* Cue and notes callouts have no title row */
+.lined-paper.cornell .callout[data-callout="cue"] > .callout-title,
+.lined-paper.cornell .callout[data-callout="notes"] > .callout-title { display: none; }
+.lined-paper.cornell .callout-icon,
+.lined-paper.cornell .callout-fold { display: none; }
+
+/* Cues in their own pen */
+.lined-paper.cornell .callout[data-callout="cue"] .callout-content,
+.lined-paper.cornell .callout[data-callout="cue"] p,
+.lined-paper.cornell .callout[data-callout="cue"] li { color: var(--cue-ink); }
+
+/* Summary title: small muted label with a red-pen underline */
+.lined-paper.cornell .callout[data-callout="summary"] > .callout-title { display: block; padding: 0; }
+.lined-paper.cornell .callout[data-callout="summary"] .callout-title-inner {
+  font-family: var(--hand);
+  font-size: var(--text);
+  line-height: var(--line);
+  font-weight: 400;
+  color: var(--muted);
+  text-decoration: underline;
+  text-decoration-color: var(--pen-red);
+  text-underline-offset: 5px;
+}
+
+
+/* ==========================================================================
+   3. Reading view — the Cornell page
+   ========================================================================== */
+
+/* Page: the divider runs the full height, behind the text */
+.markdown-preview-view.lined-paper.cornell {
+  background-image: var(--divider-line), var(--margin-line), var(--ruling);
+}
+
+/* The page fills the window so the summary can sit at the bottom */
+.markdown-preview-view.lined-paper.cornell .markdown-preview-sizer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding-bottom: 0 !important;
+}
+.markdown-preview-view.lined-paper.cornell .markdown-preview-section {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+}
+.markdown-preview-view.lined-paper.cornell .markdown-preview-section > div { flex: none; }
+
+
+/* ---------- Title bar: column labels, divider in its bottom row ---------- */
+
+.markdown-preview-view.lined-paper.cornell h1 {
+  line-height: calc(var(--line) * (var(--bar-lines) - 1.4)) !important;
+  background-image: var(--margin-line), var(--divider-line), var(--title-rule);
+  background-size: auto, 100% var(--line), auto;
+  background-position: 0 0, 0 calc(100% - 7px), 0 0;
+  background-repeat: repeat, no-repeat, repeat;
+}
+.markdown-preview-view.lined-paper.cornell h1::before,
+.markdown-preview-view.lined-paper.cornell h1::after {
+  position: absolute;
+  bottom: 7px;
+  height: var(--line);
+  font-family: var(--hand);
+  font-size: var(--text);
+  font-weight: 400;
+  line-height: var(--line);
+  color: var(--muted);
+}
+.markdown-preview-view.lined-paper.cornell h1::before { content: var(--label-cue); left: var(--pad-x); }
+.markdown-preview-view.lined-paper.cornell h1::after {
+  content: var(--label-notes);
+  left: calc(var(--divider-x) + var(--gap) + 2px);
+}
+
+
+/* ---------- Cues: zero height, so the notes start on the same row ---------- */
+
+.markdown-preview-view.lined-paper.cornell .callout[data-callout="cue"] {
+  position: relative;
+  z-index: 1;
+  display: block;
+  box-sizing: border-box;
+  width: calc(var(--cue) * 100%);
+  height: 0;
+  overflow: visible;
+  padding-right: var(--gap) !important;
+}
+
+
+/* ---------- Notes: right column ---------- */
+
+.markdown-preview-view.lined-paper.cornell .callout[data-callout="notes"] {
+  box-sizing: border-box;
+  width: calc((1 - var(--cue)) * 100%);
+  margin-left: calc(var(--cue) * 100%) !important;
+  padding-left: var(--gap) !important;
+}
+/* notes right after a cue reserve room for the cue to wrap */
+.markdown-preview-view.lined-paper.cornell .markdown-preview-section > div:has(> .callout[data-callout="cue"]) + div > .callout[data-callout="notes"] {
+  min-height: calc(var(--line) * var(--row-min));
+}
+
+
+/* ---------- Summary: pinned along the bottom, edge to edge ---------- */
+
+.markdown-preview-view.lined-paper.cornell .markdown-preview-section > div:has(> .callout[data-callout="summary"]) {
+  position: sticky;
+  bottom: 0;
+  z-index: 15;
+  box-sizing: border-box;
+  min-height: calc(var(--line) * var(--summary-lines));
+  margin: auto calc(var(--pad-x) * -1) 0 !important;
+  background:
+    var(--margin-line),
+    linear-gradient(var(--divider), var(--divider)) 0 0 / 100% 2px no-repeat,
+    var(--ruling),
+    var(--paper);
+}
+.markdown-preview-view.lined-paper.cornell .callout[data-callout="summary"] {
+  padding: 0 var(--pad-x) !important;
+}
+
+
+/* ==========================================================================
+   4. Narrow windows
+   ========================================================================== */
+
+@media (max-width: 600px) {
+  .lined-paper.cornell { --cue: 0.36; --gap: 10px; }
+}
