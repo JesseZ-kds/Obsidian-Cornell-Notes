@@ -1,0 +1,358 @@
+/* ==========================================================================
+   Lined Paper — Obsidian CSS snippet
+   --------------------------------------------------------------------------
+   Install: copy to <vault>/.obsidian/snippets/lined-paper.css, then enable it
+            in Settings → Appearance → CSS snippets.
+   Use:     add `cssclasses: lined-paper` to a note's properties.
+
+   Every rule is scoped to `.lined-paper`, so other notes are untouched.
+   Handwriting fonts load from Google Fonts (needs internet). Offline, it falls
+   back to Segoe Print / Bradley Hand / Chalkboard SE.
+
+   Core idea: one text row = one ruled line (--line). Every block is sized in
+   whole lines, so text always sits on the rules.
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Caveat:wght@600;700&display=swap");
+
+
+/* ==========================================================================
+   1. Settings — change these first
+   ========================================================================== */
+
+.lined-paper {
+  /* Layout */
+  --line: 36px;                 /* one text row = one ruled line */
+  --shift: 6px;                 /* how far a rule sits above its row's bottom edge */
+  --text: 22px;                 /* size of all body text */
+  --title: 46px;                /* the title is the only larger text */
+  --bar-lines: 3;               /* title bar height, in ruled lines */
+  --pad-x: 76px;                /* left/right page padding */
+  --callout-gap: 0;             /* blank ruled rows above and below callouts */
+
+  /* Fonts */
+  --hand: "Patrick Hand", "Segoe Print", "Bradley Hand", "Chalkboard SE", cursive;
+  --hand-title: "Caveat", "Patrick Hand", "Segoe Print", "Bradley Hand", cursive;
+
+  /* Colours: light */
+  --paper:     #fffdf8;
+  --bar:       #fffdf8;
+  --rule:      #cddff1;         /* blue ruling */
+  --margin:    #f1a7b0;         /* red margin line */
+  --ink:       #1f2937;         /* blue-black ballpoint */
+  --title-ink: #111827;
+  --muted:     #4b5d85;
+  --pen-red:   #c0392b;         /* underlines */
+  --highlight: rgba(255, 224, 102, 0.55);
+}
+
+.theme-dark .lined-paper {
+  --paper:     #1c2130;
+  --bar:       #1c2130;
+  --rule:      #2c3650;
+  --margin:    #7a4350;
+  --ink:       #d6deee;
+  --title-ink: #f1f5ff;
+  --muted:     #93a4cc;
+  --pen-red:   #ff8a7a;
+  --highlight: rgba(255, 214, 80, 0.28);
+}
+
+
+/* ==========================================================================
+   2. Shared drawing pieces (reused by the title bar and by cornell-notes.css)
+   ========================================================================== */
+
+.lined-paper {
+  /* the red vertical margin line */
+  --margin-line: linear-gradient(to right,
+    transparent calc(var(--pad-x) - 16px),
+    var(--margin) calc(var(--pad-x) - 16px),
+    var(--margin) calc(var(--pad-x) - 15px),
+    transparent calc(var(--pad-x) - 15px));
+
+  /* the horizontal blue ruling */
+  --ruling: repeating-linear-gradient(to bottom,
+    transparent 0, transparent calc(var(--line) - var(--shift) - 1px),
+    var(--rule) calc(var(--line) - var(--shift) - 1px), var(--rule) calc(var(--line) - var(--shift)),
+    transparent calc(var(--line) - var(--shift)), transparent var(--line));
+
+  /* the double rule along the bottom of the title bar */
+  --title-rule: linear-gradient(to bottom,
+    transparent 0, transparent calc(100% - 7px),
+    var(--rule) calc(100% - 7px), var(--rule) calc(100% - 5px),
+    transparent calc(100% - 5px), transparent calc(100% - 2px),
+    var(--rule) calc(100% - 2px), var(--rule) 100%);
+}
+
+
+/* ==========================================================================
+   3. Page
+   ========================================================================== */
+
+.markdown-source-view.lined-paper .cm-scroller,
+.markdown-preview-view.lined-paper {
+  padding: 0 !important;
+  background-color: var(--paper);
+  background-image: var(--margin-line), var(--ruling);
+  background-attachment: local;
+  background-position: 0 0;
+  color: var(--ink);
+  font-family: var(--hand);
+}
+
+/* Full-width page: no readable-line column, no top padding */
+.lined-paper .cm-sizer,
+.lined-paper .markdown-preview-sizer {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 var(--pad-x) var(--line) !important;
+  box-sizing: border-box;
+}
+.lined-paper .cm-content { padding: 0 !important; max-width: none !important; }
+.lined-paper .markdown-preview-pusher,
+.lined-paper .cm-gutters { display: none; }
+
+/* The title bar replaces Obsidian's own file-name title */
+.lined-paper .inline-title,
+.lined-paper .frontmatter-container { display: none !important; }
+
+
+/* ==========================================================================
+   4. Title bar (the note's # Heading, pinned to the top)
+   ========================================================================== */
+
+.lined-paper h1,
+.lined-paper .HyperMD-header-1 {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: block;
+  box-sizing: border-box;
+  height: calc(var(--line) * var(--bar-lines));
+  margin: 0 calc(var(--pad-x) * -1) !important;            /* edge to edge */
+  padding: 0 200px 0 var(--pad-x) !important;              /* lines up with the text; room for the date */
+  line-height: calc(var(--line) * (var(--bar-lines) - 0.4)) !important;   /* sits low, date gets the corner */
+  background-color: var(--bar);
+  background-image: var(--margin-line), var(--title-rule);
+  border: none !important;
+  box-shadow: 0 6px 8px -6px rgba(31, 41, 55, 0.2);
+  font-family: var(--hand-title);
+  font-size: var(--title) !important;
+  font-weight: 700;
+  text-align: left;
+  color: var(--title-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* ==========================================================================
+   5. Date — shown top right of the title bar
+   --------------------------------------------------------------------------
+   Add a note property named `date` (type: Date). Every other property is
+   hidden on these notes.
+   ========================================================================== */
+
+.lined-paper .metadata-container {
+  position: sticky;
+  top: 6px;                      /* inside the sticky title bar */
+  z-index: 30;
+  height: 0;
+  overflow: visible;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
+}
+.lined-paper .metadata-properties-heading,
+.lined-paper .metadata-add-button,
+.lined-paper .metadata-property:not([data-property-key="date"]) { display: none !important; }
+
+.lined-paper .metadata-properties {
+  position: absolute;
+  right: 28px;
+  top: 0;
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.lined-paper .metadata-property {
+  display: block;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+}
+.lined-paper .metadata-property-key,
+.lined-paper .metadata-property-icon { display: none !important; }
+.lined-paper .metadata-property-value { padding: 0; min-height: 0; }
+.lined-paper .metadata-property-value input,
+.lined-paper .metadata-property-value .metadata-input-longtext {
+  height: var(--line);
+  padding: 0;
+  font-family: var(--hand);
+  font-size: 20px;
+  line-height: var(--line);
+  text-align: right;
+  color: var(--muted);
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Legacy: a hand-written <span class="paper-date"> also works */
+.lined-paper .paper-date {
+  position: absolute;
+  right: 28px;
+  top: 6px;
+  font-family: var(--hand);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: var(--line);
+  color: var(--muted);
+}
+
+
+/* ==========================================================================
+   6. Body text — handwritten, one size, left-aligned, on the lines
+   ========================================================================== */
+
+.lined-paper .cm-line,
+.lined-paper p, .lined-paper li, .lined-paper blockquote,
+.lined-paper h2, .lined-paper h3, .lined-paper h4, .lined-paper h5, .lined-paper h6,
+.lined-paper td, .lined-paper th, .lined-paper pre, .lined-paper code {
+  margin: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  font-family: var(--hand);
+  font-size: var(--text) !important;
+  line-height: var(--line) !important;
+  letter-spacing: 0.01em;
+  text-align: left;
+  color: var(--ink);
+}
+
+/* Sub-headings: same size, underlined like a pen underline */
+.lined-paper h2, .lined-paper h3, .lined-paper h4, .lined-paper h5, .lined-paper h6,
+.lined-paper .cm-header-2, .lined-paper .cm-header-3, .lined-paper .cm-header-4,
+.lined-paper .cm-header-5, .lined-paper .cm-header-6 {
+  font-size: var(--text) !important;
+  line-height: var(--line) !important;
+  font-weight: 400;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: var(--pen-red);
+  text-underline-offset: 5px;
+}
+
+/* Inline emphasis, done the way a pen would */
+.lined-paper strong, .lined-paper .cm-strong {          /* pressed harder */
+  font-weight: 400;
+  text-shadow: 0.5px 0 0 currentColor, -0.5px 0 0 currentColor;
+}
+.lined-paper em, .lined-paper .cm-em {                  /* wavy underline */
+  font-style: normal;
+  text-decoration: underline wavy;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+}
+.lined-paper mark, .lined-paper .cm-highlight {         /* ==highlighter== */
+  color: inherit;
+  background: linear-gradient(to bottom,
+    transparent 22%, var(--highlight) 22%, var(--highlight) 88%, transparent 88%);
+  border-radius: 3px;
+}
+
+
+/* ==========================================================================
+   7. Lists, quotes, code, images — kept on the grid
+   ========================================================================== */
+
+.lined-paper ul, .lined-paper ol { margin: 0 !important; padding-inline-start: 1.4em !important; }
+.lined-paper li { list-style-position: outside; }
+.lined-paper li > p { margin: 0 !important; padding: 0 !important; }
+
+.lined-paper blockquote {
+  background: none !important;
+  border: none !important;
+  border-left: 2px solid var(--margin) !important;
+  padding: 0 0 0 14px !important;
+}
+
+.lined-paper pre {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: none !important;
+  white-space: pre-wrap;
+}
+
+.lined-paper hr { height: var(--line); margin: 0 !important; border: none; background: none; }
+.lined-paper input[type="checkbox"] { vertical-align: middle; }
+.lined-paper sub, .lined-paper sup { line-height: 0; }
+.lined-paper :is(strong, em, a, mark, del, u, code, .math, mjx-container) { line-height: inherit; }
+
+.lined-paper table { margin: 0; border-collapse: collapse; border: none; }
+.lined-paper th, .lined-paper td {
+  height: var(--line);
+  padding: 0 12px !important;
+  border: none !important;
+  text-align: left;
+  vertical-align: top;
+}
+
+.lined-paper img {              /* images occupy a fixed number of lines */
+  display: block;
+  height: calc(var(--line) * 6);
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+  object-fit: contain;
+  object-position: left top;
+}
+
+
+/* ==========================================================================
+   8. Callouts — Obsidian's look, sized in whole ruled lines
+   ========================================================================== */
+
+.lined-paper .callout {
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  margin-block: calc(var(--line) * var(--callout-gap)) !important;
+  padding: 0 12px 0 16px !important;      /* no vertical padding: height = whole lines */
+  border: 0 !important;                   /* borders would add height; drawn on ::before instead */
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+.lined-paper .callout::before {           /* inset border that stays inside the ruled lines */
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 1px 0 calc(var(--shift) + 1px) 0;
+  box-sizing: border-box;
+  border: 1px solid rgba(var(--callout-color), var(--callout-border-opacity, 30%));
+  border-radius: var(--callout-radius, 4px);
+  pointer-events: none;
+}
+.lined-paper .callout-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  height: var(--line);
+  min-height: var(--line);
+  padding: 0 !important;
+  font-size: var(--text);
+  line-height: var(--line);
+}
+.lined-paper .callout-title-inner { font-size: var(--text); line-height: var(--line); }
+.lined-paper .callout-icon,
+.lined-paper .callout-fold { display: flex; align-items: center; height: var(--line); }
+.lined-paper .callout-content { margin: 0 !important; padding: 0 !important; }
+.lined-paper .cm-callout,
+.lined-paper .cm-embed-block.cm-callout { margin: 0 !important; padding: 0 !important; }
